@@ -128,6 +128,11 @@ backends para Vulkan/OpenCL no NuGet do LLamaSharp.
 
 O fluxo completo: **dataset → QLoRA → merge → GGUF → app C#**.
 
+> **Sem GPU potente?** QLoRA precisa de ~6–8 GB de VRAM. Use o notebook pronto
+> [`training/colab_finetune.ipynb`](training/colab_finetune.ipynb) no **Google
+> Colab** (GPU T4 16 GB grátis) — é só abrir e rodar as células. As instruções
+> manuais abaixo valem para treino em GPU local.
+
 ### 1. Ambiente
 
 ```bash
