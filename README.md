@@ -130,8 +130,32 @@ O fluxo completo: **dataset → QLoRA → merge → GGUF → app C#**.
 
 > **Sem GPU potente?** QLoRA precisa de ~6–8 GB de VRAM. Use o notebook pronto
 > [`training/colab_finetune.ipynb`](training/colab_finetune.ipynb) no **Google
-> Colab** (GPU T4 16 GB grátis) — é só abrir e rodar as células. As instruções
-> manuais abaixo valem para treino em GPU local.
+> Colab** (GPU T4 16 GB grátis). As instruções manuais mais abaixo valem para
+> treino em GPU local.
+
+### Opção A — Treinar no Google Colab (recomendado, sem GPU local)
+
+O notebook fica em **`training/colab_finetune.ipynb`**. Para executá-lo:
+
+1. Acesse [colab.research.google.com](https://colab.research.google.com).
+2. Abra o notebook de uma destas formas:
+   - **Direto do GitHub:** `Arquivo → Abrir notebook → aba GitHub`, cole
+     `https://github.com/ricardosmdemello/Mini-LLM-Local-C-Sharp` e selecione
+     `training/colab_finetune.ipynb`; **ou**
+   - **Upload:** `Arquivo → Fazer upload de notebook` e escolha o arquivo
+     `training/colab_finetune.ipynb` do seu computador.
+3. Ative a GPU: `Ambiente de execução → Alterar o tipo de ambiente de execução → GPU (T4)`.
+4. Rode as células **de cima para baixo** (`Shift+Enter` em cada uma, ou
+   `Ambiente de execução → Executar tudo`). O notebook clona o repo, instala as
+   dependências, treina, converte para GGUF e oferece o download do `.gguf`.
+5. Coloque o `.gguf` baixado na pasta **`models/`** do projeto local — ele
+   aparece automaticamente no Chat (console e web).
+
+> Dica: edite a variável `BASE_MODEL` na célula 4 para trocar o modelo
+> (`google/gemma-2-2b-it`, `meta-llama/Llama-3.2-1B-Instruct`,
+> `microsoft/Phi-3-mini-4k-instruct`).
+
+### Opção B — Treinar localmente (requer GPU NVIDIA com ~6–8 GB de VRAM)
 
 ### 1. Ambiente
 
