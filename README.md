@@ -24,8 +24,9 @@ App de **console** (terminal), interativo, com três funções:
 - **📦 Modelos** — lista os modelos baixados e baixa novos do catálogo (Gemma/Llama/Phi) com barra de progresso.
 - **📊 Ver dados de treino** — inspeciona os datasets `.jsonl` em `data/` (contagem + prévia em tabela).
 
-> Uma análise sobre evoluir para uma **UI web em Blazor** está em
-> [`docs/blazor-analysis.md`](docs/blazor-analysis.md).
+Há também uma **UI web (Blazor Server)** com as mesmas três funções — veja
+[Interface Web](#-interface-web-blazor). A análise que motivou essa escolha está
+em [`docs/blazor-analysis.md`](docs/blazor-analysis.md).
 
 ---
 
@@ -40,8 +41,11 @@ Mini-LLM-Local-C-Sharp/
 │   │   ├── Models/                # ModelInfo, ModelCatalog, ModelDownloader, LocalModelStore
 │   │   ├── Data/                  # TrainingExample, DatasetReader (JSONL)
 │   │   └── AppPaths.cs            # Descobre models/ e data/ a partir da raiz do repo
-│   └── MiniLlmLocal.Console/      # App de teste (Spectre.Console)
-│       └── Menus/                 # ChatMenu, ModelsMenu, DataMenu
+│   ├── MiniLlmLocal.Console/      # App de teste em terminal (Spectre.Console)
+│   │   └── Menus/                 # ChatMenu, ModelsMenu, DataMenu
+│   └── MiniLlmLocal.Web/          # UI web (Blazor Server) — mesmas funções
+│       ├── Components/Pages/      # Chat, Models, Data, Home
+│       └── Services/              # ChatSessionState (engine por circuito)
 ├── tests/
 │   └── MiniLlmLocal.Tests/        # xUnit (catálogo, dataset, store, progresso)
 ├── training/                      # Python: QLoRA + conversão para GGUF
@@ -82,6 +86,24 @@ Dentro do chat: `/reset` limpa o histórico, `/sair` volta ao menu.
 > A inferência em CPU funciona, mas é mais lenta — veja **GPU** abaixo.
 
 ---
+
+## 🌐 Interface Web (Blazor)
+
+Além do console, há uma UI web em **Blazor Server** (`MiniLlmLocal.Web`) que
+reaproveita 100% do `MiniLlmLocal.Core`, com páginas de **Chat** (streaming),
+**Modelos** (download com barra de progresso) e **Dados**.
+
+```bash
+dotnet run --project src/MiniLlmLocal.Web
+```
+
+Abra a URL exibida no terminal (ex.: `https://localhost:7xxx`).
+
+Detalhes de arquitetura (por que Server e não WebAssembly, gestão de sessão do
+`LLamaContext`, etc.) estão em [`docs/blazor-analysis.md`](docs/blazor-analysis.md).
+
+> **Segurança:** o app serve por padrão em `localhost`. Não exponha à rede sem
+> autenticação — qualquer um usaria sua GPU/CPU e leria seus dados.
 
 ## 🖥️ CPU vs. GPU (inferência no C#)
 

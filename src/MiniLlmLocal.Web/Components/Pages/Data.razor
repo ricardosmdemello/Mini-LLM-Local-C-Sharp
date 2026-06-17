@@ -1,0 +1,95 @@
+@page "/data"
+
+<PageTitle>Dados</PageTitle>
+
+<h1>📊 Dados de treino</h1>
+<p class="text-muted">Pasta: <code>@AppPaths.DataDirectory</code></p>
+
+@if (_files.Count == 0)
+{
+    <div class="alert alert-warning">Nenhum dataset <code>.jsonl</code> encontrado em <code>data/</code>.</div>
+}
+else
+{
+    <div class="mb-3" style="max-width: 520px;">
+        <label class="form-label">Dataset</label>
+        <select class="form-select" @bind="_selected" @bind:after="LoadSelected">
+            <option value="">— selecione —</option>
+            @foreach (var f in _files)
+            {
+                <option value="@f">@System.IO.Path.GetRelativePath(AppPaths.DataDirectory, f)</option>
+            }
+        </select>
+    </div>
+
+    @if (_error is not null)
+    {
+        <div class="alert alert-danger">@_error</div>
+    }
+    else if (_examples is not null)
+    {
+        <p><strong>@_examples.Count</strong> exemplos.</p>
+        <table class="table table-bordered table-sm">
+            <thead>
+                <tr><th style="width:3rem;">#</th><th>Instruction / Input</th><th>Output</th></tr>
+            </thead>
+            <tbody>
+                @{ var i = 1; }
+                @foreach (var ex in _examples.Take(50))
+                {
+                    <tr>
+                        <td>@i</td>
+                        <td>
+                            <div>@ex.Instruction</div>
+                            @if (!string.IsNullOrWhiteSpace(ex.Input))
+                            {
+                                <div class="text-muted small mt-1">@ex.Input</div>
+                            }
+                        </td>
+                        <td style="white-space: pre-wrap;">@ex.Output</td>
+                    </tr>
+                    i++;
+                }
+            </tbody>
+        </table>
+        @if (_examples.Count > 50)
+        {
+            <p class="text-muted">... e mais @(_examples.Count - 50) exemplos.</p>
+        }
+    }
+}
+
+@code {
+    private List<string> _files = [];
+    private string _selected = "";
+    private IReadOnlyList<TrainingExample>? _examples;
+    private string? _error;
+
+    protected override void OnInitialized()
+    {
+        if (Directory.Exists(AppPaths.DataDirectory))
+        {
+            _files = Directory
+                .EnumerateFiles(AppPaths.DataDirectory, "*.jsonl", SearchOption.AllDirectories)
+                .OrderBy(f => f)
+                .ToList();
+        }
+    }
+
+    private void LoadSelected()
+    {
+        _error = null;
+        _examples = null;
+        if (string.IsNullOrEmpty(_selected))
+            return;
+
+        try
+        {
+            _examples = DatasetReader.ReadJsonl(_selected);
+        }
+        catch (Exception ex)
+        {
+            _error = $"Erro ao ler o dataset: {ex.Message}";
+        }
+    }
+}

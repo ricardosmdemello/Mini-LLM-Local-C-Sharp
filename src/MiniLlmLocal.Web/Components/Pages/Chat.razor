@@ -1,0 +1,176 @@
+@page "/chat"
+@using System.Threading
+@inject ChatSessionState State
+@inject LocalModelStore Store
+@implements IDisposable
+
+<PageTitle>Chat</PageTitle>
+
+<h1>💬 Chat</h1>
+
+@if (!State.IsLoaded)
+{
+    var locals = Store.List();
+    if (locals.Count == 0)
+    {
+        <div class="alert alert-warning">
+            Nenhum modelo baixado. Vá em <a href="models">Modelos</a> e baixe um primeiro.
+        </div>
+    }
+    else
+    {
+        <div class="card" style="max-width: 720px;">
+            <div class="card-body">
+                <h5 class="card-title">Carregar modelo</h5>
+                <div class="mb-3">
+                    <label class="form-label">Modelo</label>
+                    <select class="form-select" @bind="_selectedPath">
+                        <option value="">— selecione —</option>
+                        @foreach (var m in locals)
+                        {
+                            <option value="@m.FullPath">@m.FileName (@m.SizeDisplay)</option>
+                        }
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Prompt de sistema (opcional)</label>
+                    <textarea class="form-control" rows="2" @bind="_systemPrompt"
+                              placeholder="Deixe em branco para usar o padrão (suporte técnico)."></textarea>
+                </div>
+                <button class="btn btn-primary" disabled="@(_loading || string.IsNullOrEmpty(_selectedPath))"
+                        @onclick="LoadModelAsync">
+                    @if (_loading)
+                    {
+                        <span class="spinner-border spinner-border-sm me-1"></span>
+                        <span>Carregando...</span>
+                    }
+                    else
+                    {
+                        <span>Carregar</span>
+                    }
+                </button>
+                @if (_error is not null)
+                {
+                    <div class="alert alert-danger mt-3 mb-0">@_error</div>
+                }
+            </div>
+        </div>
+    }
+}
+else
+{
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="text-muted">Modelo: <code>@System.IO.Path.GetFileName(State.LoadedModelPath)</code></span>
+        <div>
+            <button class="btn btn-sm btn-outline-secondary" @onclick="State.Reset" disabled="@State.IsBusy">Limpar histórico</button>
+        </div>
+    </div>
+
+    <div class="chat-window border rounded p-3 mb-3" style="height: 55vh; overflow-y: auto; background:#fafafa;">
+        @foreach (var msg in State.Messages.Where(m => m.Role != ChatRole.System))
+        {
+            <div class="chat-bubble @(msg.Role == ChatRole.User ? "user" : "assistant")">
+                <div class="role">@(msg.Role == ChatRole.User ? "Você" : "IA")</div>
+                <div class="bubble-text">@msg.Content</div>
+            </div>
+        }
+        @if (_streaming.Length > 0)
+        {
+            <div class="chat-bubble assistant">
+                <div class="role">IA</div>
+                <div class="bubble-text">@_streaming.ToString()</div>
+            </div>
+        }
+    </div>
+
+    <div class="input-group">
+        <input class="form-control" placeholder="Digite sua mensagem..." @bind="_input"
+               @bind:event="oninput" @onkeydown="OnKeyDown" disabled="@State.IsBusy" />
+        @if (State.IsBusy)
+        {
+            <button class="btn btn-outline-danger" @onclick="Stop">Parar</button>
+        }
+        else
+        {
+            <button class="btn btn-primary" @onclick="SendAsync"
+                    disabled="@string.IsNullOrWhiteSpace(_input)">Enviar</button>
+        }
+    </div>
+}
+
+@code {
+    private string _selectedPath = "";
+    private string _systemPrompt = "";
+    private bool _loading;
+    private string? _error;
+
+    private string _input = "";
+    private readonly System.Text.StringBuilder _streaming = new();
+    private CancellationTokenSource? _cts;
+
+    private async Task LoadModelAsync()
+    {
+        _error = null;
+        _loading = true;
+        try
+        {
+            await State.LoadAsync(_selectedPath, _systemPrompt);
+        }
+        catch (Exception ex)
+        {
+            _error = $"Falha ao carregar: {ex.Message}";
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task OnKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !State.IsBusy && !string.IsNullOrWhiteSpace(_input))
+            await SendAsync();
+    }
+
+    private async Task SendAsync()
+    {
+        if (State.IsBusy || string.IsNullOrWhiteSpace(_input))
+            return;
+
+        var userText = _input.Trim();
+        _input = "";
+        State.Messages.Add(new ChatMessage(ChatRole.User, userText));
+        _streaming.Clear();
+
+        _cts = new CancellationTokenSource();
+        try
+        {
+            await foreach (var chunk in State.StreamReplyAsync(userText, _cts.Token))
+            {
+                _streaming.Append(chunk);
+                StateHasChanged();
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Geração interrompida pelo usuário; mantemos o texto parcial.
+        }
+        catch (Exception ex)
+        {
+            _streaming.Append($"\n[erro: {ex.Message}]");
+        }
+        finally
+        {
+            if (_streaming.Length > 0)
+                State.Messages.Add(new ChatMessage(ChatRole.Assistant, _streaming.ToString()));
+            _streaming.Clear();
+            _cts?.Dispose();
+            _cts = null;
+            StateHasChanged();
+        }
+    }
+
+    private void Stop() => _cts?.Cancel();
+
+    public void Dispose() => _cts?.Cancel();
+}

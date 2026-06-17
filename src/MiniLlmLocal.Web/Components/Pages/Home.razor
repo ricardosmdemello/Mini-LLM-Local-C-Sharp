@@ -1,0 +1,41 @@
+@page "/"
+
+<PageTitle>Mini LLM Local</PageTitle>
+
+<h1>🧠 Mini LLM Local</h1>
+<p class="lead">Chat com modelos GGUF (Gemma / Llama / Phi) rodando localmente via LLamaSharp.</p>
+
+<div class="row g-3 mt-2">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">💬 Chat</h5>
+                <p class="card-text">Converse com a IA usando um modelo baixado, com resposta em streaming.</p>
+                <a class="btn btn-primary" href="chat">Abrir chat</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">📦 Modelos</h5>
+                <p class="card-text">Baixe modelos do catálogo e veja os que já estão no disco.</p>
+                <a class="btn btn-primary" href="models">Gerenciar modelos</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">📊 Dados</h5>
+                <p class="card-text">Inspecione os datasets de fine-tuning (.jsonl).</p>
+                <a class="btn btn-primary" href="data">Ver dados</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="alert alert-secondary mt-4" role="alert">
+    <strong>Primeira vez?</strong> Vá em <a href="models">Modelos</a>, baixe um modelo
+    (ex.: Gemma 2 2B) e depois abra o <a href="chat">Chat</a>.
+</div>

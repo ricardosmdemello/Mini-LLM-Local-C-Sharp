@@ -1,0 +1,120 @@
+@page "/models"
+@using System.Threading
+@inject LocalModelStore Store
+@inject ModelDownloader Downloader
+@implements IDisposable
+
+<PageTitle>Modelos</PageTitle>
+
+<h1>📦 Modelos</h1>
+<p class="text-muted">Pasta: <code>@Store.Directory</code></p>
+
+<h4 class="mt-4">Baixados</h4>
+@{
+    var locals = Store.List();
+}
+@if (locals.Count == 0)
+{
+    <p class="text-muted">Nenhum modelo baixado ainda.</p>
+}
+else
+{
+    <table class="table table-sm w-auto">
+        <thead><tr><th>Arquivo</th><th class="text-end">Tamanho</th></tr></thead>
+        <tbody>
+            @foreach (var m in locals)
+            {
+                <tr><td><code>@m.FileName</code></td><td class="text-end">@m.SizeDisplay</td></tr>
+            }
+        </tbody>
+    </table>
+}
+
+<h4 class="mt-4">Catálogo</h4>
+<div class="row g-3">
+    @foreach (var model in ModelCatalog.All)
+    {
+        var downloaded = Store.IsDownloaded(model);
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">@model.Name</h5>
+                    <h6 class="card-subtitle mb-2 text-muted">@model.Family · ~@model.ApproxSizeDisplay · @model.License</h6>
+                    <p class="card-text">@model.Description</p>
+
+                    @if (downloaded)
+                    {
+                        <span class="badge bg-success">✓ Baixado</span>
+                    }
+                    else if (_downloadingId == model.Id)
+                    {
+                        <div class="progress" role="progressbar">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated"
+                                 style="width: @(_percent)%">@_percent%</div>
+                        </div>
+                        <button class="btn btn-sm btn-outline-danger mt-2" @onclick="Cancel">Cancelar</button>
+                    }
+                    else
+                    {
+                        <button class="btn btn-primary" disabled="@(_downloadingId is not null)"
+                                @onclick="() => DownloadAsync(model)">Baixar</button>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@if (_message is not null)
+{
+    <div class="alert @_messageClass mt-3">@_message</div>
+}
+
+@code {
+    private string? _downloadingId;
+    private int _percent;
+    private string? _message;
+    private string _messageClass = "alert-info";
+    private CancellationTokenSource? _cts;
+
+    private async Task DownloadAsync(ModelInfo model)
+    {
+        _message = null;
+        _downloadingId = model.Id;
+        _percent = 0;
+        _cts = new CancellationTokenSource();
+
+        var progress = new Progress<DownloadProgress>(p =>
+        {
+            _percent = (int)Math.Round((p.Fraction ?? 0) * 100);
+            InvokeAsync(StateHasChanged);
+        });
+
+        try
+        {
+            await Downloader.DownloadAsync(model, Store.Directory, progress, _cts.Token);
+            _message = $"✓ {model.Name} baixado com sucesso.";
+            _messageClass = "alert-success";
+        }
+        catch (OperationCanceledException)
+        {
+            _message = "Download cancelado.";
+            _messageClass = "alert-warning";
+        }
+        catch (Exception ex)
+        {
+            _message = $"Falha no download: {ex.Message}";
+            _messageClass = "alert-danger";
+        }
+        finally
+        {
+            _downloadingId = null;
+            _cts?.Dispose();
+            _cts = null;
+        }
+    }
+
+    private void Cancel() => _cts?.Cancel();
+
+    public void Dispose() => _cts?.Cancel();
+}

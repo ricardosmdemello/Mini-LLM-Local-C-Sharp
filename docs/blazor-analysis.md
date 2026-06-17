@@ -1,7 +1,8 @@
 # Análise: evoluir o app de teste para uma UI Web em Blazor
 
-> Status: **proposta / análise**. A implementação atual é o app de **console**
-> (`src/MiniLlmLocal.Console`). Este documento avalia trazer uma interface web.
+> Status: **IMPLEMENTADO** em `src/MiniLlmLocal.Web` (Blazor Server), seguindo a
+> recomendação abaixo. Este documento registra a análise que motivou a escolha.
+> Rode com `dotnet run --project src/MiniLlmLocal.Web`.
 
 ## Contexto
 

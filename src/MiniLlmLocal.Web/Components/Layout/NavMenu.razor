@@ -1,0 +1,32 @@
+<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">🧠 Mini LLM Local</a>
+    </div>
+</div>
+
+<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+
+<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+    <nav class="nav flex-column">
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Início
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="chat">
+                <span class="bi bi-chat-dots-fill-nav-menu" aria-hidden="true"></span> Chat
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="models">
+                <span class="bi bi-box-seam-fill-nav-menu" aria-hidden="true"></span> Modelos
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="data">
+                <span class="bi bi-table-nav-menu" aria-hidden="true"></span> Dados
+            </NavLink>
+        </div>
+    </nav>
+</div>
