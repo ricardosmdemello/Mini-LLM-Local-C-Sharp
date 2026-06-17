@@ -128,6 +128,51 @@ backends para Vulkan/OpenCL no NuGet do LLamaSharp.
 
 O fluxo completo: **dataset → QLoRA → merge → GGUF → app C#**.
 
+### ⚠️ Entenda antes: o treino **não** altera o modelo carregado no Chat
+
+Esta é a confusão mais comum. O fine-tuning **não pega o `.gguf` que você usa no
+Chat e "injeta" os dados nele**. Ele faz outra coisa:
+
+1. Baixa o **modelo base original** do Hugging Face (ex.: `google/gemma-2-2b-it`)
+   — repositório oficial, **não** um arquivo `.gguf`.
+2. Treina esse base nos seus dados com QLoRA (em Python/GPU).
+3. Gera um **arquivo `.gguf` NOVO e separado** (ex.: `meu-modelo-suporte-Q4_K_M.gguf`).
+
+O modelo que você já tinha em `models/` **continua intacto**. Depois do treino
+você passa a ter dois arquivos, e escolhe qual carregar no Chat:
+
+```
+models/
+├── gemma-2-2b-it-Q4_K_M.gguf          ← base "genérico" (baixado pelo app)
+└── meu-modelo-suporte-Q4_K_M.gguf     ← NOVO: treinado nos seus dados  ← selecione este
+```
+
+**Por que não dá para "treinar no `.gguf` carregado"?**
+
+- O `.gguf` é um formato **quantizado, otimizado só para inferência** (rodar rápido),
+  não para treino.
+- O treino acontece sobre os **pesos originais em `float16`**, que vivem no
+  repositório do Hugging Face — por isso começamos do modelo base, não do `.gguf`.
+- Resultado: o caminho é **sempre** base (HF) → treina → exporta `.gguf` novo →
+  carrega no Chat.
+
+**Fluxo correto, visualmente:**
+
+```
+google/gemma-2-2b-it   →   QLoRA com seus dados   →   .gguf NOVO   →   Chat carrega o novo
+   (base, no HF/nuvem)        (Colab ou GPU local)     (em models/)      (e responde no seu domínio)
+```
+
+> No notebook e nos scripts, a variável/flag `BASE_MODEL` / `--base-model` deve
+> apontar para o **repositório base do Hugging Face** (ex.: `google/gemma-2-2b-it`),
+> **nunca** para um arquivo `.gguf`. É esse base que é treinado.
+
+> E os "Dados" do app? A aba **📊 Dados** serve só para **inspecionar** o `.jsonl`;
+> ela não treina nada nem alimenta o Chat em tempo de execução. Os dados só
+> "entram" no modelo através do treino descrito aqui.
+
+### Como executar o treino
+
 > **Sem GPU potente?** QLoRA precisa de ~6–8 GB de VRAM. Use o notebook pronto
 > [`training/colab_finetune.ipynb`](training/colab_finetune.ipynb) no **Google
 > Colab** (GPU T4 16 GB grátis). As instruções manuais mais abaixo valem para
