@@ -1,0 +1,44 @@
+# ---------- .NET ----------
+bin/
+obj/
+out/
+*.user
+*.suo
+.vs/
+[Dd]ebug/
+[Rr]elease/
+artifacts/
+*.binlog
+TestResults/
+[Cc]overage/
+*.coverage
+*.trx
+
+# ---------- Modelos / pesos (grandes; nunca versionar) ----------
+models/*
+!models/.gitkeep
+*.gguf
+*.bin
+*.safetensors
+*.pt
+*.pth
+
+# ---------- Treino em Python ----------
+training/output/
+training/**/checkpoint-*/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.ipynb_checkpoints/
+wandb/
+
+# ---------- llama.cpp (se clonado dentro do repo) ----------
+llama.cpp/
+
+# ---------- Editores / SO ----------
+.idea/
+*.swp
+.DS_Store
+Thumbs.db

@@ -1,0 +1,2 @@
+# Os arquivos .gguf baixados/gerados ficam aqui. O conteúdo é ignorado pelo Git
+# (veja .gitignore); este arquivo apenas preserva a pasta no repositório.

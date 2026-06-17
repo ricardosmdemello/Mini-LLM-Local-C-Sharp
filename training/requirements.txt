@@ -1,0 +1,12 @@
+# Fine-tuning QLoRA de modelos pequenos (Gemma / Llama 3.2 / Phi-3) em GPU consumer.
+# Testado com Python 3.10–3.12 e CUDA 12.x. Em CPU o treino é inviável — use GPU.
+
+torch>=2.3.0            # instale a build CUDA conforme sua GPU: https://pytorch.org/get-started/locally/
+transformers>=4.44.0
+datasets>=2.20.0
+peft>=0.12.0            # LoRA / QLoRA
+bitsandbytes>=0.43.0    # quantização 4-bit (NF4)
+accelerate>=0.33.0
+trl>=0.9.6              # SFTTrainer
+sentencepiece>=0.2.0   # tokenizers Gemma/Llama
+protobuf>=4.25.0

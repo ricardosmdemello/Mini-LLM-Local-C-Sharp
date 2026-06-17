@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/MiniLlmLocal.Console/MiniLlmLocal.Console.csproj" />
+    <Project Path="src/MiniLlmLocal.Core/MiniLlmLocal.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/MiniLlmLocal.Tests/MiniLlmLocal.Tests.csproj" />
+  </Folder>
+</Solution>
